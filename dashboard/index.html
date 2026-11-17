@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Launch Radar — pre-token protocols ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="masthead">
+  <p class="kicker">Token Launch Radar &middot; model <span id="model-version">catfit-2</span> &middot; snapshot of <span id="as-of">&hellip;</span></p>
+  <h1>Protocols that record no token yet, priced as if they launched today.</h1>
+  <p class="standfirst">Every protocol in the sealed DefiLlama snapshot that records no token is ranked by an
+  <strong>implied value</strong>: what its token would be worth if it issued one at the multiple its own category
+  already trades at. Protocols whose token already trades are never ranked &mdash; they are the evidence, shown
+  apart under <em>Already trading</em>. The snapshot is DefiLlama&rsquo;s record: a protocol here
+  <em>records</em> no token, which is not proof it has none.</p>
+  <dl class="stats" id="stats"></dl>
+</header>
+
+<section class="method" aria-label="How the implied value is derived">
+  <h2>How each implied value is derived</h2>
+  <p>The model is fitted from the snapshot itself, at run time, on the <span id="fit-sample">&hellip;</span>
+  protocols whose token already trades. For each category it takes the median market-cap-to-TVL ratio of that
+  category&rsquo;s traded protocols, shrunk toward the global median (<span id="fit-global">&hellip;</span>) by
+  sample size &mdash; a thin category borrows from the whole market, a deep one stands on its own &mdash; and
+  clamps the result between 0.02 and 3.0. Then, for a pre-token protocol:</p>
+  <p class="formula">implied value = TVL &times; category multiple &times; growth factor &times; maturity factor</p>
+  <p>The <strong>growth factor</strong> is 1 + the 7-day TVL change, clamped to &minus;30%&hellip;+50%, times 0.6
+  (so a hot week is worth up to &times;1.30, a bad one as little as &times;0.82). The <strong>maturity
+  factor</strong> rises from 0.75 to 1.25 across a protocol&rsquo;s first four years running with no token: the
+  longer it has operated tokenless, the more of its record a launch would price in. No protocol&rsquo;s name is
+  special-cased anywhere: one fitted function scores every row, and each row&rsquo;s detail view shows its own
+  arithmetic. Wrapped, staked and bridged products of tokens that already trade (a wrapped-BTC bridge is Bitcoin
+  in transit, not a launch waiting to happen) and exchanges are left off the board at every size, for the same
+  reason the watchlist leaves them out: <span id="excluded-count">&hellip;</span> such products sit in this
+  snapshot, several of them larger than everything on the board.</p>
+  <div id="fit-table"></div>
+</section>
+
+<nav class="controls" aria-label="Board controls">
+  <div class="control">
+    <label for="q">Search</label>
+    <input id="q" type="search" placeholder="Name or slug&hellip;" autocomplete="off">
+  </div>
+  <div class="control">
+    <label for="f-category">Category</label>
+    <select id="f-category"><option value="">All categories</option></select>
+  </div>
+  <div class="control">
+    <label for="f-chain">Chain</label>
+    <select id="f-chain"><option value="">All chains</option></select>
+  </div>
+  <div class="control">
+    <label for="f-tvl">Minimum TVL</label>
+    <select id="f-tvl">
+      <option value="0">Any size</option>
+      <option value="10000000">$10M+</option>
+      <option value="50000000">$50M+ (watchlist floor)</option>
+      <option value="100000000">$100M+</option>
+      <option value="500000000">$500M+</option>
+    </select>
+  </div>
+  <div class="control check">
+    <label><input id="f-watch" type="checkbox"> Watchlist only</label>
+  </div>
+  <div class="control check">
+    <label><input id="f-live" type="checkbox"> Show already-trading protocols</label>
+  </div>
+  <p class="count" id="count" role="status"></p>
+</nav>
+
+<main>
+  <section id="board-wrap" aria-label="Ranked board">
+    <table id="board">
+      <thead><tr>
+        <th data-sort="rank" class="num">Rank</th>
+        <th data-sort="name">Protocol</th>
+        <th data-sort="category">Category</th>
+        <th>Chains</th>
+        <th data-sort="tvl_usd" class="num">TVL</th>
+        <th data-sort="change_7d" class="num">7d</th>
+        <th data-sort="age_days" class="num">Age</th>
+        <th data-sort="multiple" class="num">Multiple</th>
+        <th data-sort="implied_value_usd" class="num">Implied value</th>
+        <th>Farm</th>
+      </tr></thead>
+      <tbody id="board-body"></tbody>
+    </table>
+    <p class="empty" id="board-empty" hidden>No protocol matches those filters. Loosen one and the board fills again.</p>
+  </section>
+
+  <section id="detail" aria-label="Protocol detail" hidden></section>
+
+  <section id="live-wrap" aria-label="Already trading" hidden>
+    <h2>Already trading &mdash; the evidence, not the board</h2>
+    <p>These protocols&rsquo; tokens already trade, so the radar does not rank them: it shows the market&rsquo;s
+    own market cap beside the TVL the model&rsquo;s multiples were fitted on. This is the separation the board
+    keeps &mdash; a live token is a fact, a pre-token value is a claim, and the two are never mixed in one rank.</p>
+    <table id="live">
+      <thead><tr>
+        <th>Protocol</th><th>Symbol</th><th>Category</th>
+        <th class="num">Market cap</th><th class="num">TVL</th><th class="num">mcap / TVL</th><th class="num">7d</th>
+      </tr></thead>
+      <tbody id="live-body"></tbody>
+    </table>
+  </section>
+</main>
+
+<footer>
+  <p>Implied values are this radar&rsquo;s own claims, derived only from the snapshot&rsquo;s figures &mdash; TVL,
+  seven-day growth, category and time running tokenless. They are not predictions that a token will be issued,
+  and no farm plan here is a promise of one: a protocol may never launch, and a position can lose its capital
+  to the protocol, the chain or the market. Farm with money whose loss changes nothing.</p>
+  <p class="src" id="source-line"></p>
+</footer>
+
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
